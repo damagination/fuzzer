@@ -1,15 +1,15 @@
 require "optparse"
 
 
-# Correct usage
+# Help message
 message = %q{
 fuzz [discover | test] url OPTIONS
 
 COMMANDS:
-  discover  Output a comprehensive, human-readable list of all discovered inputs to the system. Techniques include both crawling and guessing. 
+  discover  Output a comprehensive, human-readable list of all discovered inputs to the system. Techniques include both crawling and guessing.
   test      Discover all inputs, then attempt a list of exploit vectors on those inputs. Report potential vulnerabilities.
 
-OPTIONS: 
+OPTIONS:
   --custom-auth=string     Signal that the fuzzer should use hard-coded authentication for a specific application (e.g. dvwa). Optional.
 
   Discover options:
@@ -22,41 +22,55 @@ OPTIONS:
     --slow=500             Number of milliseconds considered when a response is considered "slow". Default is 500 milliseconds
 
 Examples:
-  # Discover inputs 
+  # Discover inputs
   fuzz discover http://localhost:8080 --common-words=mywords.txt
 
-  # Discover inputs to DVWA using our hard-coded authentication 
+  # Discover inputs to DVWA using our hard-coded authentication
   fuzz discover http://localhost:8080 --common-words=mywords.txt
 
   # Discover and Test DVWA without randomness
   fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false
 }
 
-# Get the options for the program
-options = {}
-OptionParser.new do |opt|
-    opt.on('--custom-auth STRING') { |o| options['custom_auth'] = o }
-    opt.on('--common-words FILE') { |o| options['common_words'] = o }
+def getOptions()
+    # Get the options for the program
+    options = {}
+    OptionParser.new do |opt|
+        opt.on('--custom-auth STRING') { |o| options['custom_auth'] = o }
+        opt.on('--common-words FILE') { |o| options['common_words'] = o }
 
-    opt.on('--vectors FILE') { |o| options['vectors'] = o }
-    opt.on('--sensitive FILE') { |o| options['sensitive'] = o }
-    opt.on('--random [ture|false]') { |o| options['random'] = o }
-    opt.on('--slow 500') { |o| options['slow'] = o }
-end.parse!
-
-
-# Get arguments
-command = ARGV.shift
-url = ARGV.shift
-
-# Check that arguments exist
-if command.nil? or url.nil?
-    puts message
-    exit(-1)
+        opt.on('--vectors FILE') { |o| options['vectors'] = o }
+        opt.on('--sensitive FILE') { |o| options['sensitive'] = o }
+        opt.on('--random [ture|false]') { |o| options['random'] = o }
+        opt.on('--slow 500') { |o| options['slow'] = o }
+    end.parse!
+    return options
 end
 
-if ['discover', 'test'].include?(command)
-    puts 'hello'
-else
-    puts message
+def getArguments()
+    # Get arguments
+    command = ARGV.shift
+    url = ARGV.shift
+
+    # Check that arguments exist
+    if command.nil? or url.nil?
+        puts message
+        exit(-1)
+    end
+    return [command, url]
 end
+
+
+def main()
+    args = getArguments()
+    opts = getOptions()
+
+
+    if ['discover', 'test'].include?(args[0])
+        puts 'hello'
+    else
+        puts message
+    end
+end
+
+main()
