@@ -36,3 +36,21 @@ def auth(agent, website)
     agent
   end
 end
+
+# Register for bodgeit store account
+def register(agent)
+  agent.get('http://127.0.0.1:8080/bodgeit/register.jsp') do |page|
+
+    # Submit the login form
+    my_page = page.form_with(:method => 'POST') do |form|
+      username_field = form.field_with(:name => 'username')
+      username_field.value = $bodgeIt_user
+      password1_field = form.field_with(:name => 'password1')
+      password1_field.value = $bodgeIt_pass
+      password2_field = form.field_with(:name => 'password2')
+      password2_field.value = $bodgeIt_pass
+    end.click_button
+  end
+  # Return the agent after auth
+  agent
+end
