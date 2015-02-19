@@ -1,8 +1,9 @@
 require "optparse"
 
+@input_url = nil
 
 # Help message
-message = %q{
+@message = %q{
 fuzz [discover | test] url OPTIONS
 
 COMMANDS:
@@ -54,7 +55,7 @@ def getArguments()
 
     # Check that arguments exist
     if command.nil? or url.nil?
-        puts message
+        puts @message
         exit(-1)
     end
     return [command, url]
@@ -65,12 +66,12 @@ def main()
     args = getArguments()
     opts = getOptions()
 
+    @input_url = args[1]
+
 
     if ['discover', 'test'].include?(args[0])
         puts 'hello'
     else
-        puts message
+        puts @message
     end
 end
-
-main()
