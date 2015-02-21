@@ -4,11 +4,11 @@ load 'main.rb'
 
 def getFullPath(url)
   uri = URI(url)
-  returnUrl = uri.scheme + '://' + uri.host + uri.path
+  returnUrl = uri.scheme + '://' + uri.host
   if not uri.port.to_s.empty?
     port = ':' + uri.port.to_s
   end
-  returnUrl + port
+  returnUrl + port  + uri.path
 end
 
 def getQueryParams(url)
@@ -48,6 +48,6 @@ def parseUrls(urls)
   urlPairs
 end
 
-# urlList = ['http://localhost:8081', 'http://localhost:8080/hello?2=2', 'http://localhost:8080/hello?1=1', 'http://localhost:8080?index=555']
+# urlList = ['http://127.0.0.1/dvwa/index.php', 'http://127.0.0.1:8080/bodgeit/', 'http://www.ritathletics.com/sports/2007/10/31/saac2007.aspx', 'http://en.wikibooks.org/wiki/Ruby_Programming/Syntax/Operators', 'http://localhost:8081/index.jsp', 'http://localhost:8080/hello?2=2', 'http://localhost:8080/hello?1=1', 'http://localhost:8080?index=555']
 # p parseUrls(urlList)
-# returns => {"http://localhost:8081"=>{}, "http://localhost/hello:8080"=>{"2"=>"2", "1"=>"1"}, "http://localhost:8080"=>{"index"=>"555"}}
+# returns => {"http://127.0.0.1:80/dvwa/index.php"=>{}, "http://127.0.0.1:8080/bodgeit/"=>{}, "http://www.ritathletics.com:80/sports/2007/10/31/saac2007.aspx"=>{}, "http://en.wikibooks.org:80/wiki/Ruby_Programming/Syntax/Operators"=>{}, "http://localhost:8081/index.jsp"=>{}, "http://localhost:8080/hello"=>{"2"=>"2", "1"=>"1"}, "http://localhost:8080"=>{"index"=>"555"}}
