@@ -30,6 +30,17 @@ class Page
         end
       end
     end
+
+    puts "Pages: "
+    @@pages.each do |page|
+      puts page.url 
+      if page.params.any?
+        puts "\t Params: "
+        page.params.each do |param, values|
+          puts "\t\t #{param}: #{values.join(", ")}"
+        end
+      end
+    end
   end
 
   # used by self.crawl! to go through new urls and add them to the collection
