@@ -2,15 +2,9 @@ require 'mechanize'
 require 'rubygems'
 require_relative 'parse.rb'
 
-#Input: a url
+#Input: a page
 #Results: prints all inputs from the page
-def discoverFormParameters(url)
-
-	if sameHost?(url)
-		agent = Mechanize.new
-		page = agent.get(url)
-		
-		pp page
+def discoverFormParameters(page)
 		
 		page.forms.each do |form|
 			puts "Form name: #{form.name}"
