@@ -6,7 +6,7 @@ require_relative 'parse.rb'
 #Results: prints all inputs from the page
 def discoverFormParameters(url)
 
-	if sameHost?
+	if sameHost?(url)
 		agent = Mechanize.new
 		page = agent.get(url)
 		
