@@ -35,7 +35,7 @@ class Page
     @@pages.each do |page|
       puts page.url 
       if page.params.any?
-        puts "\t Params: "
+        puts "\t Params: (and known values to work)"
         page.params.each do |param, values|
           puts "\t\t #{param}: #{values.join(", ")}"
         end
