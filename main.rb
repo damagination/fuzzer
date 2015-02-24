@@ -67,10 +67,15 @@ end
 def main
     args = getArguments()
     opts = getOptions()
+    auth = ''
 
     @input_url = args[1]
     if ['discover', 'test'].include?(args[0])
-      page = Page.new(@input_url)
+
+      if ['dvwa', 'bodgeit'].include?(opts['custom_auth'])
+        auth = opts['custom_auth'].downcase
+      end
+      page = Page.new(@input_url, auth)
       Page.add(page)
       Page.crawl!
       Page.guess(opts['common_words']) if opts['common_words']

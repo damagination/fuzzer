@@ -1,5 +1,7 @@
 require 'mechanize'
 require 'uri'
+require_relative 'auth.rb'
+require_relative 'InputDiscovery.rb'
 
 class Page
   COMMON_EXTENSIONS = %w(html jsp aspx php)
@@ -7,15 +9,26 @@ class Page
   attr_accessor :url, :params
   # set default for @crawled, get the full url without params,
   # and take all the params on the url and store them
-  def initialize(url)
+  def initialize(url, auth)
     @crawled = false
     @url = full_path(url)
     @params = parse_params(url)
+    @auth = auth
   end
 
   # gets the page and its links, then calls parse_urls
   def self.crawl!
     agent = Mechanize.new
+    if not @auth == ''
+      agent = auth(agent, @auth)
+
+    end
+
+    begin
+      discoverCookies(agent)
+    rescue
+    end
+
 
     until @@pages.all?(&:crawled?)
       @@pages.each do |page|
@@ -34,11 +47,16 @@ class Page
 
     puts "Pages: "
     @@pages.each do |page|
-      puts page.url 
+      puts page.url
       if page.params.any?
         puts "\t Params: (and known values to work)"
         page.params.each do |param, values|
           puts "\t\t #{param}: #{values.join(", ")}"
+        end
+
+        begin
+          discoverFormParameters(page)
+        rescue
         end
       end
     end
@@ -55,11 +73,11 @@ class Page
       next if url =~ /\w\/\w+\.\w+\//
 
       page = Page.new(url)
-      if @@pages.include? page 
+      if @@pages.include? page
         existing_page = @@pages.detect { |p| p.url == page.url }
-        existing_page.add_params page.params 
+        existing_page.add_params page.params
       else
-        @@pages << page 
+        @@pages << page
       end
     end
   end
@@ -76,21 +94,21 @@ class Page
         end
         paths = url.path.split("/")
         if paths.any?
-          begin 
-            agent.get("#{base}#{paths.shuffle.join("/")}.#{COMMON_EXTENSIONS.sample}")    
+          begin
+            agent.get("#{base}#{paths.shuffle.join("/")}.#{COMMON_EXTENSIONS.sample}")
           rescue
             next
-          end  
+          end
         end
       end
     end
   end
 
   def self.add(page)
-    @@pages << page 
+    @@pages << page
   end
 
-  # merge in any new params discovered, add the successful value if 
+  # merge in any new params discovered, add the successful value if
   # the params are already there to the array
   def add_params(new_params)
     new_params.each do |param, value|
@@ -103,7 +121,7 @@ class Page
   end
 
   def ==(another_page)
-    @url == another_page.url 
+    @url == another_page.url
   end
 
   def crawled?
@@ -115,8 +133,8 @@ class Page
   end
 
 
-  private 
-  
+  private
+
   # clean up the url for the Page object
   def full_path(url)
     uri = URI(url)
@@ -130,8 +148,8 @@ class Page
   # Returns a hash of the query parameters for a given query string
   def parse_params(base_url)
     uri = URI(base_url)
-    query = uri.query 
-    
+    query = uri.query
+
     return {} if query.nil?
 
     queryPairs = Hash.new
