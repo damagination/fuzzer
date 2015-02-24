@@ -1,8 +1,8 @@
 require 'mechanize'
 require 'uri'
-require 'pry'
 
 class Page
+  COMMON_EXTENSIONS = %w(html jsp aspx php)
   @@pages = []
   attr_accessor :url, :params
   # set default for @crawled, get the full url without params,
@@ -20,10 +20,25 @@ class Page
     until @@pages.all?(&:crawled?)
       @@pages.each do |page|
         unless page.crawled?
-          page_data = agent.get(page.url)
-          links = page_data.links.map(&:href).map { |link| "#{page.url}/#{link}" }
-          self.parse_urls(links)
-          page.crawled!
+          begin
+            page_data = agent.get(page.url)
+            links = page_data.links.map(&:href).map { |link| "#{page.url}/#{link}" }
+            self.parse_urls(links)
+            page.crawled!
+          rescue
+            next
+          end
+        end
+      end
+    end
+
+    puts "Pages: "
+    @@pages.each do |page|
+      puts page.url 
+      if page.params.any?
+        puts "\t Params: (and known values to work)"
+        page.params.each do |param, values|
+          puts "\t\t #{param}: #{values.join(", ")}"
         end
       end
     end
@@ -45,6 +60,28 @@ class Page
         existing_page.add_params page.params 
       else
         @@pages << page 
+      end
+    end
+  end
+
+  # take a filename and guess pages based off of it
+  def self.guess(file)
+    agent = Mechanize.new
+    File.readlines(file).each do |word|
+      @@pages.each do |page|
+        url = URI(page.url)
+        base = "#{url.scheme}://#{url.host}"
+        unless url.port.nil?
+          port = ":#{url.port}"
+        end
+        paths = url.path.split("/")
+        if paths.any?
+          begin 
+            agent.get("#{base}#{paths.shuffle.join("/")}.#{COMMON_EXTENSIONS.sample}")    
+          rescue
+            next
+          end  
+        end
       end
     end
   end
