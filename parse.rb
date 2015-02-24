@@ -19,10 +19,14 @@ class Page
     until @@pages.all?(&:crawled?)
       @@pages.each do |page|
         unless page.crawled?
-          page_data = agent.get(page.url)
-          links = page_data.links.map(&:href).map { |link| "#{page.url}/#{link}" }
-          self.parse_urls(links)
-          page.crawled!
+          begin
+            page_data = agent.get(page.url)
+            links = page_data.links.map(&:href).map { |link| "#{page.url}/#{link}" }
+            self.parse_urls(links)
+            page.crawled!
+          rescue
+            next
+          end
         end
       end
     end
