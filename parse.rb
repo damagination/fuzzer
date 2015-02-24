@@ -19,7 +19,7 @@ class Page
   # gets the page and its links, then calls parse_urls
   def self.crawl!
     agent = Mechanize.new
-    if not @auth == ''
+    unless @auth == ''
       agent = auth(agent, @auth)
 
     end
@@ -29,6 +29,7 @@ class Page
     rescue
     end
 
+    puts "Pages: "
 
     until @@pages.all?(&:crawled?)
       @@pages.each do |page|
@@ -39,13 +40,12 @@ class Page
             self.parse_urls(links)
             page.crawled!
           rescue
-            next
+            @@pages.delete page 
           end
         end
       end
     end
 
-    puts "Pages: "
     @@pages.each do |page|
       puts page.url
       if page.params.any?
@@ -72,7 +72,7 @@ class Page
       # catches bad input from self.crawl! like site.com/index.jsp/index.jsp
       next if url =~ /\w\/\w+\.\w+\//
 
-      page = Page.new(url)
+      page = Page.new(url, nil)
       if @@pages.include? page
         existing_page = @@pages.detect { |p| p.url == page.url }
         existing_page.add_params page.params

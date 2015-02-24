@@ -71,7 +71,6 @@ def main
 
     @input_url = args[1]
     if ['discover', 'test'].include?(args[0])
-
       if ['dvwa', 'bodgeit'].include?(opts['custom_auth'])
         auth = opts['custom_auth'].downcase
       end
