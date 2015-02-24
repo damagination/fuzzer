@@ -1,6 +1,5 @@
 require 'mechanize'
 require 'rubygems'
-require_relative 'parse.rb'
 
 #Input: a page
 #Results: prints all inputs from the page
@@ -20,7 +19,6 @@ def discoverFormParameters(page)
 			end
 			puts ""
 		end
-	end
 end
 
 def discoverCookies(agent)
