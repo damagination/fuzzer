@@ -4,7 +4,7 @@ require 'pry'
 
 class Page
   @@pages = []
-  attr_accessor :url, :params 
+  attr_accessor :url, :params
   # set default for @crawled, get the full url without params,
   # and take all the params on the url and store them
   def initialize(url)
@@ -16,6 +16,7 @@ class Page
   # gets the page and its links, then calls parse_urls
   def self.crawl!
     agent = Mechanize.new
+
     until @@pages.all?(&:crawled?)
       @@pages.each do |page|
         unless page.crawled?
@@ -26,13 +27,18 @@ class Page
         end
       end
     end
-    binding.pry
   end
 
+  # used by self.crawl! to go through new urls and add them to the collection
+  # of pages if they are not already there and combine with existing ones if
+  # new parameters and values are discovered
   def self.parse_urls(urls)
     urls.each do |url|
+      # clear out any bad input
       next if url.nil? || url.empty?
+      # catches bad input from self.crawl! like site.com/index.jsp/index.jsp
       next if url =~ /\w\/\w+\.\w+\//
+
       page = Page.new(url)
       if @@pages.include? page 
         existing_page = @@pages.detect { |p| p.url == page.url }
@@ -74,7 +80,7 @@ class Page
 
   private 
   
-
+  # clean up the url for the Page object
   def full_path(url)
     uri = URI(url)
     returnUrl = "#{uri.scheme}://#{uri.host}"
