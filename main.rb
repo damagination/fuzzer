@@ -1,4 +1,6 @@
 require "optparse"
+require "mechanize"
+require_relative 'parse.rb'
 
 @input_url = nil
 
@@ -33,7 +35,7 @@ Examples:
   fuzz test http://localhost:8080 --custom-auth=dvwa --common-words=words.txt --vectors=vectors.txt --sensitive=creditcards.txt --random=false
 }
 
-def getOptions()
+def getOptions
     # Get the options for the program
     options = {}
     OptionParser.new do |opt|
@@ -48,7 +50,7 @@ def getOptions()
     return options
 end
 
-def getArguments()
+def getArguments
     # Get arguments
     command = ARGV.shift
     url = ARGV.shift
@@ -62,16 +64,18 @@ def getArguments()
 end
 
 
-def main()
+def main
     args = getArguments()
     opts = getOptions()
 
     @input_url = args[1]
-
-
     if ['discover', 'test'].include?(args[0])
-        puts 'hello'
+      page = Page.new(@input_url)
+      Page.add(page)
+      Page.crawl!
     else
-        puts @message
+      puts @message
     end
 end
+
+main
