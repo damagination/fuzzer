@@ -19,9 +19,8 @@ class Page
   # gets the page and its links, then calls parse_urls
   def self.crawl!
     agent = Mechanize.new
-    unless @auth == ''
+    unless @auth.empty?
       agent = auth(agent, @auth)
-
     end
 
     begin
