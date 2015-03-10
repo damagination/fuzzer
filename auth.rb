@@ -4,12 +4,13 @@ $dvwa_user = 'admin'
 $dvwa_pass = 'password'
 
 $bodgeIt_user = 'j@j.j'
-$bodgeIt_pass = 'password'
+$bodgeIt_pass = '     '
 
 # Authenticates the agent and returns the logged in agent
 def auth(agent, website)
-  if website == 'DVWA'
-    agent.get('http://127.0.0.1/dvwa/index.php') do |page|
+
+  if website == 'dvwa'
+    agent.get('http://127.0.0.1/dvwa/login.php') do |page|
 
       # Submit the login form
       my_page = page.form_with(:action => 'login.php') do |form|
@@ -21,7 +22,7 @@ def auth(agent, website)
     end
     # Return the agent after auth
     agent
-  else
+  elsif website == 'bodgeit'
     agent.get('http://127.0.0.1:8080/bodgeit/login.jsp') do |page|
 
       # Submit the login form
@@ -35,6 +36,7 @@ def auth(agent, website)
     # Return the agent after auth
     agent
   end
+  agent
 end
 
 # Register for bodgeit store account

@@ -1,0 +1,13 @@
+index
+home
+about
+aboutus
+news
+login
+logout
+admin
+dashboard
+private
+images
+css
+cart

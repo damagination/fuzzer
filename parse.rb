@@ -1,30 +1,31 @@
 require 'mechanize'
 require 'uri'
 require_relative 'auth.rb'
-require_relative 'InputDiscovery.rb'
+require_relative 'input_discovery.rb'
 
 class Page
   COMMON_EXTENSIONS = %w(html jsp aspx php)
   @@pages = []
-  attr_accessor :url, :params
+  @@authed = false
+  @@agent = Mechanize.new
+  attr_accessor :url, :params, :host_url
   # set default for @crawled, get the full url without params,
   # and take all the params on the url and store them
-  def initialize(url, auth)
+  def initialize(input_url, auth_site)
     @crawled = false
-    @url = full_path(url)
-    @params = parse_params(url)
-    @auth = auth
+    unless @@authed 
+      @@agent = auth(@@agent, auth_site)
+      @@authed = true
+    end
+    @url = full_path(input_url)
+    @params = parse_params(input_url)
   end
 
   # gets the page and its links, then calls parse_urls
   def self.crawl!
-    agent = Mechanize.new
-    unless @auth.empty?
-      agent = auth(agent, @auth)
-    end
 
     begin
-      discoverCookies(agent)
+      discoverCookies(@@agent)
     rescue
     end
 
@@ -34,8 +35,19 @@ class Page
       @@pages.each do |page|
         unless page.crawled?
           begin
-            page_data = agent.get(page.url)
-            links = page_data.links.map(&:href).map { |link| "#{page.url}/#{link}" }
+            page_data = @@agent.get(page.url)
+            links = page_data.links.map do |link| 
+              if link.href.include? page.host_url
+                link.href 
+              else
+                if link.href[0] == "?"
+                  "#{page.url}#{link.href}"
+                else
+                  "#{page.host_url}/#{link.href}" 
+                end
+              end
+            end
+
             self.parse_urls(links)
             page.crawled!
           rescue
@@ -54,7 +66,8 @@ class Page
         end
 
         begin
-          discoverFormParameters(page)
+          agent_page = @@agent.get(page.url)
+          discoverFormParameters(agent_page)
         rescue
         end
       end
@@ -68,8 +81,9 @@ class Page
     urls.each do |url|
       # clear out any bad input
       next if url.nil? || url.empty?
+      next if url =~ /.+\.$/ 
+      next if url =~ /.*\/\/.+:\/\//
       # catches bad input from self.crawl! like site.com/index.jsp/index.jsp
-      next if url =~ /\w\/\w+\.\w+\//
 
       page = Page.new(url, nil)
       if @@pages.include? page
@@ -83,24 +97,27 @@ class Page
 
   # take a filename and guess pages based off of it
   def self.guess(file)
-    agent = Mechanize.new
+    words = []
     File.readlines(file).each do |word|
-      @@pages.each do |page|
-        url = URI(page.url)
-        base = "#{url.scheme}://#{url.host}"
-        unless url.port.nil?
-          port = ":#{url.port}"
-        end
-        paths = url.path.split("/")
-        if paths.any?
+      words << word
+    end
+
+    @@pages.each do |page|
+      short_url = page.url.split("/")[0..-1].join("/")
+      words.each do |word|
+        COMMON_EXTENSIONS.each do |ext|
           begin
-            agent.get("#{base}#{paths.shuffle.join("/")}.#{COMMON_EXTENSIONS.sample}")
+            test_url = "#{short_url}/#{word}.#{ext}"
+            page = @@agent.get(test_url)
+            Page.new(test_url, nil) if page.code.to_i == 200
           rescue
             next
           end
         end
       end
     end
+    
+
   end
 
   def self.add(page)
@@ -137,11 +154,17 @@ class Page
   # clean up the url for the Page object
   def full_path(url)
     uri = URI(url)
-    returnUrl = "#{uri.scheme}://#{uri.host}"
+    @host_url = "#{uri.scheme}://#{uri.host}"
     unless uri.port.nil?
-      port = ":#{uri.port}"
+      @host_url += ":#{uri.port}"
     end
-    returnUrl + port + uri.path
+
+    if uri.port == 80 && !url.include?("dvwa")
+      @host_url += "/dvwa" 
+    elsif uri.port == 8080 && !url.include?("bodgeit")
+      @host_url += "/bodgeit" 
+    end
+    @host_url + uri.path
   end
 
   # Returns a hash of the query parameters for a given query string
@@ -160,10 +183,3 @@ class Page
     queryPairs
   end
 end
-
-
-
-
-# urlList = ['http://127.0.0.1/dvwa/index.php', 'http://127.0.0.1:8080/bodgeit/', 'http://www.ritathletics.com/sports/2007/10/31/saac2007.aspx', 'http://en.wikibooks.org/wiki/Ruby_Programming/Syntax/Operators', 'http://localhost:8081/index.jsp', 'http://localhost:8080/hello?2=2', 'http://localhost:8080/hello?1=1', 'http://localhost:8080?index=555']
-# p parseUrls(urlList)
-# returns => {"http://127.0.0.1:80/dvwa/index.php"=>{}, "http://127.0.0.1:8080/bodgeit/"=>{}, "http://www.ritathletics.com:80/sports/2007/10/31/saac2007.aspx"=>{}, "http://en.wikibooks.org:80/wiki/Ruby_Programming/Syntax/Operators"=>{}, "http://localhost:8081/index.jsp"=>{}, "http://localhost:8080/hello"=>{"2"=>"2", "1"=>"1"}, "http://localhost:8080"=>{"index"=>"555"}}
