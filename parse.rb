@@ -1,6 +1,7 @@
 require 'mechanize'
 require 'uri'
 require_relative 'auth.rb'
+require_relative 'response.rb'
 require_relative 'input_discovery.rb'
 
 class Page
@@ -8,12 +9,13 @@ class Page
   @@pages = []
   @@authed = false
   @@agent = Mechanize.new
-  attr_accessor :url, :params, :host_url
+  attr_accessor :url, :params, :host_url, :status_code
   # set default for @crawled, get the full url without params,
   # and take all the params on the url and store them
   def initialize(input_url, auth_site)
     @crawled = false
-    unless @@authed 
+    @status_code = nil
+    unless @@authed
       @@agent = auth(@@agent, auth_site)
       @@authed = true
     end
@@ -36,22 +38,23 @@ class Page
         unless page.crawled?
           begin
             page_data = @@agent.get(page.url)
-            links = page_data.links.map do |link| 
+            links = page_data.links.map do |link|
               if link.href.include? page.host_url
-                link.href 
+                link.href
               else
                 if link.href[0] == "?"
                   "#{page.url}#{link.href}"
                 else
-                  "#{page.host_url}/#{link.href}" 
+                  "#{page.host_url}/#{link.href}"
                 end
               end
             end
 
+            page.status_code = get_status_code(page_data)
             self.parse_urls(links)
             page.crawled!
           rescue
-            @@pages.delete page 
+            @@pages.delete page
           end
         end
       end
@@ -59,6 +62,9 @@ class Page
 
     @@pages.each do |page|
       puts page.url
+      unless page.status_code == "200"
+        puts "\t Status Code: #{page.status_code}"
+      end
       if page.params.any?
         puts "\t Params: (and known values to work)"
         page.params.each do |param, values|
@@ -81,7 +87,7 @@ class Page
     urls.each do |url|
       # clear out any bad input
       next if url.nil? || url.empty?
-      next if url =~ /.+\.$/ 
+      next if url =~ /.+\.$/
       next if url =~ /.*\/\/.+:\/\//
       # catches bad input from self.crawl! like site.com/index.jsp/index.jsp
 
@@ -116,7 +122,7 @@ class Page
         end
       end
     end
-    
+
 
   end
 
@@ -160,9 +166,9 @@ class Page
     end
 
     if uri.port == 80 && !url.include?("dvwa")
-      @host_url += "/dvwa" 
+      @host_url += "/dvwa"
     elsif uri.port == 8080 && !url.include?("bodgeit")
-      @host_url += "/bodgeit" 
+      @host_url += "/bodgeit"
     end
     @host_url + uri.path
   end

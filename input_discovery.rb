@@ -1,7 +1,7 @@
 require 'mechanize'
 require 'rubygems'
 
-#Input: a page
+#Input: a mechanize page
 #Results: prints all inputs from the page
 def discoverFormParameters(page)
   puts "\t Forms:" if page.forms.any?
