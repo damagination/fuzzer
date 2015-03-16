@@ -76,7 +76,7 @@ def main
       end
       page = Page.new(@input_url, @auth_site)
       Page.add(page)
-      Page.crawl!
+      Page.crawl!(opts['vectors'])
       Page.guess(opts['common_words']) if opts['common_words']
     else
       puts @message
