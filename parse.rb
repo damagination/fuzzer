@@ -24,10 +24,14 @@ class Page
   end
 
   # gets the page and its links, then calls parse_urls
-  def self.crawl!(vector_file)
+  def self.crawl!(vector_file, sensitive_file)
     # if vector file was provided, read in the vectors
     vectors = []
     vectors = File.readlines(vector_file).map(&:strip) if vector_file
+
+    # if sensitive words file was provided, read in those words
+    sensitive_words = []
+    sensitive_words = File.readlines(sensitive_file).map(&:strip) if sensitive_file
     
     begin
       discoverCookies(@@agent)
@@ -78,6 +82,14 @@ class Page
       
       begin
         agent_page = @@agent.get(page.url)
+        
+        leaked_data = []
+        sensitive_words.each do |word|
+          leaked_data << word if agent_page.body.include? word 
+        end
+
+        puts "Leaked words: #{leaked_data.join(', ')}" unless leaked_data.empty?
+
         discoverFormParameters(agent_page, vectors)
       rescue
       end
