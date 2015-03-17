@@ -24,8 +24,11 @@ class Page
   end
 
   # gets the page and its links, then calls parse_urls
-  def self.crawl!
-
+  def self.crawl!(vector_file)
+    # if vector file was provided, read in the vectors
+    vectors = []
+    vectors = File.readlines(vector_file).map(&:strip) if vector_file
+    
     begin
       discoverCookies(@@agent)
     rescue
@@ -71,11 +74,12 @@ class Page
           puts "\t\t #{param}: #{values.join(", ")}"
         end
 
-        begin
-          agent_page = @@agent.get(page.url)
-          discoverFormParameters(agent_page)
-        rescue
-        end
+      end
+      
+      begin
+        agent_page = @@agent.get(page.url)
+        discoverFormParameters(agent_page, vectors)
+      rescue
       end
     end
   end
