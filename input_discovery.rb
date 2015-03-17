@@ -34,10 +34,10 @@ def discover_form_parameters(page, vectors, threshold)
       # submit the form with the values filled in, returns a mechanize page
       result_page = check_delayed_form_response(form, threshold)
 
-      if result_page.body.include? vector
+      if result_page.first.body.include? vector
         # if the page body includes the exact vector, then it is very much unsanitized
         puts "\t\t\t(definitely) '#{vector}'"
-      elsif !result_page.body.include?(CGI::escapeHTML(vector))
+      elsif !result_page.first.body.include?(CGI::escapeHTML(vector))
         # else, if the body doesnt have the escaped vector, it may be only partially sanitized
         # (or it may just not render the query to the page)
         puts "\t\t\t(maybe) '#{vector}'"

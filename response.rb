@@ -24,7 +24,11 @@ def check_delayed_page_response(agent, page_url, threshold)
 end
 
 def calulate_delay(threshold, time)
-  thresh_micro = threshold.to_i / 1000.0
-  time > thresh_micro
+  if threshold
+    thresh_micro = threshold.to_i / 1000.0 
+    time > thresh_micro
+  else
+    false
+  end
 end
 

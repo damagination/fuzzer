@@ -96,7 +96,7 @@ class Page
           leaked_data << word if agent_page.first.body.include? word 
         end
 
-        puts "Leaked words: #{leaked_data.join(', ')}" unless leaked_data.empty?
+        puts "\t Leaked words: #{leaked_data.join(', ')}" unless leaked_data.empty?
 
         discover_form_parameters(agent_page.first, vectors, @@threshold)
       rescue
