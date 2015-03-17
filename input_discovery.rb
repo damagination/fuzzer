@@ -1,8 +1,8 @@
 require 'mechanize'
 require 'rubygems'
 
-# Input: a mechanize page
-# Results: prints all inputs from the page
+# Input: a mechanize page, array of words
+# Results: prints all inputs from the page and vulnerabilities found
 def discoverFormParameters(page, vectors)
   puts "\t Forms:" if page.forms.any?
   page.forms.each do |form|
@@ -52,5 +52,7 @@ def discoverFormParameters(page, vectors)
 end
 
 def discoverCookies(agent)
-  puts "Cookie #{agent.cookies.to_s}"
+  agent.cookies.each do |cookie|
+    puts "Cookie: #{cookie.to_s}"
+  end
 end
