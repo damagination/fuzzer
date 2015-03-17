@@ -74,7 +74,7 @@ def main
       if ['dvwa', 'bodgeit'].include?(opts['custom_auth'])
         @auth_site = opts['custom_auth'].downcase
       end
-      page = Page.new(@input_url, @auth_site)
+      page = Page.new(@input_url, @auth_site, opts['slow'])
       Page.add(page)
       Page.crawl!(opts['vectors'], opts['sensitive'])
       Page.guess(opts['common_words']) if opts['common_words']
