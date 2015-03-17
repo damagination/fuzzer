@@ -3,7 +3,7 @@ require 'rubygems'
 
 # Input: a mechanize page, array of words
 # Results: prints all inputs from the page and vulnerabilities found
-def discoverFormParameters(page, vectors)
+def discover_form_parameters(page, vectors, threshold)
   puts "\t Forms:" if page.forms.any?
   page.forms.each do |form|
     puts "\t\t Form name: #{form.name}"
@@ -32,7 +32,7 @@ def discoverFormParameters(page, vectors)
       end
       
       # submit the form with the values filled in, returns a mechanize page
-      result_page = form.submit
+      result_page = check_delayed_form_response(form, threshold)
 
       if result_page.body.include? vector
         # if the page body includes the exact vector, then it is very much unsanitized
